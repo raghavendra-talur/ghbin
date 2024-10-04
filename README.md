@@ -2,3 +2,6 @@
 
 # ghbin
 A cli tool to use a github repo as a file store
+
+
+Inspired by https://github.com/Shiphero/shbin
