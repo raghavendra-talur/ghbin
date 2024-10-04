@@ -125,7 +125,10 @@ func uploadAction(c *cli.Context) error {
 		}
 
 		if fileName == "" {
-			fileName = generateRandomFileName()
+			fileName, err = generateRandomFileName()
+			if err != nil {
+				return err
+			}
 		}
 
 		err = uploadContent(ctx, client, repoName, fileName, content, message, targetDir, forceNew)
@@ -165,7 +168,11 @@ func uploadContent(ctx context.Context, client *github.Client, repoName, fileNam
 	_, _, _, err = client.Repositories.GetContents(ctx, owner, repo, path, nil)
 	if err == nil {
 		if forceNew {
-			fileName = generateRandomFileName()
+			fileName, err = generateRandomFileName()
+			if err != nil {
+				return err
+			}
+
 			path = filepath.Join(targetDir, fileName)
 		} else {
 			// Update existing file
@@ -207,10 +214,13 @@ func parseRepoName(repoName string) (string, string, error) {
 	return parts[0], parts[1], nil
 }
 
-func generateRandomFileName() string {
+func generateRandomFileName() (string, error) {
 	b := make([]byte, 6)
-	rand.Read(b)
-	return base64.URLEncoding.EncodeToString(b) + ".txt"
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate random file name: %w", err)
+	}
+	return base64.URLEncoding.EncodeToString(b) + ".txt", nil
 }
 
 func downloadAction(c *cli.Context) error {
